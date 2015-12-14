@@ -49,9 +49,15 @@ static void read_csv(const string& filename, vector<Mat>& images, vector<int>& l
 
 string g_listname_t[]= 
 {
-    "e4",
-    "foobar"
+    "Eth4nZ",
+    "BigXhead",
+    "WildKatzeX",
+    "cartitsu",
 };
+
+const int numList = 4;
+int capLoops = 5000;
+int capTimes[numList];
 
 int main(int argc, const char *argv[]) {
     // Check for valid command line arguments, print usage
@@ -64,7 +70,8 @@ int main(int argc, const char *argv[]) {
         exit(1);
     }
     // Get the path to your CSV:
-    string fn_haar = "/usr/share/opencv/haarcascades/haarcascade_frontalface_default.xml";
+    string fn_haar_face = "/usr/share/opencv/haarcascades/haarcascade_frontalface_alt2.xml";
+    string fn_haar_eye = "/usr/share/opencv/haarcascades/haarcascade_eye.xml";
     string fn_csv = string(argv[1]);
     int deviceId = 0;
     // These vectors hold the images and corresponding labels:
@@ -91,8 +98,10 @@ int main(int argc, const char *argv[]) {
     // We are going to use the haar cascade you have specified in the
     // command line arguments:
     //
-    CascadeClassifier haar_cascade;
-    haar_cascade.load(fn_haar);
+    CascadeClassifier face_cascade;
+    face_cascade.load(fn_haar_face);
+    CascadeClassifier eye_cascade;
+    eye_cascade.load(fn_haar_eye);
     // Get a handle to the Video device:
     VideoCapture cap(deviceId);
     // Check if we can use this device at all:
@@ -100,9 +109,12 @@ int main(int argc, const char *argv[]) {
         cerr << "Capture Device ID " << deviceId << "cannot be opened." << endl;
         return -1;
     }
+    for(int i = 0; i < numList; i++)
+        capTimes[i] = 0;
     // Holds the current frame from the Video device:
     Mat frame;
-    for(;;) {
+    //cin >> capLoops;
+    for(int i = 0; i < capLoops; i++) {
         cap >> frame;
         // Clone the current frame:
         Mat original = frame.clone();
@@ -111,7 +123,7 @@ int main(int argc, const char *argv[]) {
         cvtColor(original, gray, CV_BGR2GRAY);
         // Find the faces in the frame:
         vector< Rect_<int> > faces;
-        haar_cascade.detectMultiScale(gray, faces);
+        face_cascade.detectMultiScale(gray, faces);
         // At this point you have the position of the faces in
         // faces. Now we'll get the faces, make a prediction and
         // annotate it in the video. Cool or what?
@@ -120,6 +132,16 @@ int main(int argc, const char *argv[]) {
             Rect face_i = faces[i];
             // Crop the face from the image. So simple with OpenCV C++:
             Mat face = gray(face_i);
+
+            vector< Rect_<int> > eyes;
+            eye_cascade.detectMultiScale(face, eyes);
+            if(eyes.size() < 1)
+                continue;
+            /*for( size_t j = 0; j < eyes.size(); j++){
+                Point center( faces[i].x + eyes[j].x + eyes[j].width*0.5, faces[i].y + eyes[j].y + eyes[j].height*0.5 );
+                int radius = cvRound( (eyes[j].width + eyes[j].height)*0.25 );
+                circle(original, center, radius, Scalar( 255, 0, 0 ), 4, 8, 0 );
+            }*/
             // Resizing the face is necessary for Eigenfaces and Fisherfaces. You can easily
             // verify this, by reading through the face recognition tutorial coming with OpenCV.
             // Resizing IS NOT NEEDED for Local Binary Patterns Histograms, so preparing the
@@ -131,6 +153,7 @@ int main(int argc, const char *argv[]) {
             // Since I am showing the Fisherfaces algorithm here, I also show how to resize the
             // face you have just found:
             Mat face_resized;
+            //cv::resize(face, face_resized, Size(im_width, im_height), 1.0, 1.0, INTER_CUBIC);
             cv::resize(face, face_resized, Size(im_width, im_height), 1.0, 1.0, INTER_CUBIC);
             // Now perform the prediction, see how easy that is:
             int prediction = model->predict(face_resized);
@@ -142,9 +165,10 @@ int main(int argc, const char *argv[]) {
             string box_text;
             box_text = format( "Prediction = " );
             // Get stringname
-            if ( prediction >= 0 && prediction <=1 )
+            if ( prediction >= 0 && prediction <= numList )
             {
                 box_text.append( g_listname_t[prediction] );
+                capTimes[prediction]++;
             }
             else box_text.append( "Unknown" );
             // Calculate the position for annotated text (make sure we don't
@@ -159,9 +183,16 @@ int main(int argc, const char *argv[]) {
         imshow("face_recognizer", original);
         // And display it:
         char key = (char) waitKey(20);
+        //key = (char) waitKey(20000);
         // Exit this loop on escape:
         if(key == 27)
             break;
+    }
+    for(int i = 0; i < numList; i++){
+        if(capTimes[i] > capLoops*4/7)
+            cout << g_listname_t[i] << "'s here!" << endl;
+        else
+            cout << g_listname_t[i] << "'s ABSENT!" << endl;
     }
     return 0;
 }
