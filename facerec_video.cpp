@@ -1,21 +1,3 @@
-/*
- * Copyright (c) 2011. Philipp Wagner <bytefish[at]gmx[dot]de>.
- * Released to public domain under terms of the BSD Simplified license.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- *   * Neither the name of the organization nor the names of its contributors
- *     may be used to endorse or promote products derived from this software
- *     without specific prior written permission.
- *
- *   See <http://www.opensource.org/licenses/bsd-license>
- */
-
 #include "opencv2/core/core.hpp"
 #include "opencv2/contrib/contrib.hpp"
 #include "opencv2/highgui/highgui.hpp"
@@ -49,13 +31,19 @@ static void read_csv(const string& filename, vector<Mat>& images, vector<int>& l
 
 string g_listname_t[]= 
 {
+    "13073125",
+    "13073118",
+    "13073107",
+    "13073112",
+    "13073122",
+    /*"BigXhead",
+    "LaMaoutai",
     "Eth4nZ",
-    "BigXhead",
     "WildKatzeX",
-    "cartitsu",
+    "cartitsu",*/
 };
 
-const int numList = 4;
+const int numList = 5;
 int capLoops = 5000;
 int capTimes[numList];
 
@@ -70,9 +58,10 @@ int main(int argc, const char *argv[]) {
         exit(1);
     }
     // Get the path to your CSV:
-    string fn_haar_face = "/usr/share/opencv/haarcascades/haarcascade_frontalface_alt2.xml";
+    string fn_haar_face = "/usr/share/opencv/haarcascades/haarcascade_frontalface_alt.xml";
     string fn_haar_eye = "/usr/share/opencv/haarcascades/haarcascade_eye.xml";
     string fn_csv = string(argv[1]);
+    //int deviceId = atoi(argv[2]);
     int deviceId = 0;
     // These vectors hold the images and corresponding labels:
     vector<Mat> images;
@@ -91,7 +80,10 @@ int main(int argc, const char *argv[]) {
     int im_width = images[0].cols;
     int im_height = images[0].rows;
     // Create a FaceRecognizer and train it on the given images:
-    Ptr<FaceRecognizer> model = createFisherFaceRecognizer();
+    //Ptr<FaceRecognizer> model = createFisherFaceRecognizer();
+    Ptr<FaceRecognizer> model = createEigenFaceRecognizer();
+    //Ptr<FaceRecognizer> model = createLBPHFaceRecognizer();
+
     model->train(images, labels);
     // That's it for learning the Face Recognition model. You now
     // need to create the classifier for the task of Face Detection.
@@ -135,8 +127,9 @@ int main(int argc, const char *argv[]) {
 
             vector< Rect_<int> > eyes;
             eye_cascade.detectMultiScale(face, eyes);
-            if(eyes.size() < 1)
+            /*if(eyes.size() < 1)
                 continue;
+                */
             /*for( size_t j = 0; j < eyes.size(); j++){
                 Point center( faces[i].x + eyes[j].x + eyes[j].width*0.5, faces[i].y + eyes[j].y + eyes[j].height*0.5 );
                 int radius = cvRound( (eyes[j].width + eyes[j].height)*0.25 );
@@ -156,22 +149,29 @@ int main(int argc, const char *argv[]) {
             //cv::resize(face, face_resized, Size(im_width, im_height), 1.0, 1.0, INTER_CUBIC);
             cv::resize(face, face_resized, Size(im_width, im_height), 1.0, 1.0, INTER_CUBIC);
             // Now perform the prediction, see how easy that is:
-            int prediction = model->predict(face_resized);
+            //int prediction = model->predict(face_resized);
+            int prediction;
+            double confidence;
+            model->predict(face_resized, prediction, confidence);
             // And finally write all we've found out to the original image!
             // First of all draw a green rectangle around the detected face:
             rectangle(original, face_i, CV_RGB(0, 255,0), 1);
             // Create the text we will annotate the box with:
             //string box_text = format("Prediction = %d", prediction);
             string box_text;
-            box_text = format( "Prediction = " );
+            box_text = format( "" );
             // Get stringname
-            if ( prediction >= 0 && prediction <= numList )
+            if ( prediction >= 0 && prediction < numList )
             {
                 box_text.append( g_listname_t[prediction] );
                 capTimes[prediction]++;
             }
             else box_text.append( "Unknown" );
-            // Calculate the position for annotated text (make sure we don't
+            ostringstream strs;
+            strs << confidence;
+            string str = strs.str();
+            box_text.append(" ");
+            box_text.append(str);
             // Calculate the position for annotated text (make sure we don't
             // put illegal values in there):
             int pos_x = std::max(face_i.tl().x - 10, 0);
