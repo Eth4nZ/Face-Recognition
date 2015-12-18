@@ -7,9 +7,14 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <map>
 
 using namespace cv;
 using namespace std;
+
+map<string, int> conn;
+int capLoops = 5000;
+vector<int> capTimes;
 
 static void read_csv(const string& filename, vector<Mat>& images, vector<int>& labels, char separator = ';') {
     std::ifstream file(filename.c_str(), ifstream::in);
@@ -23,40 +28,39 @@ static void read_csv(const string& filename, vector<Mat>& images, vector<int>& l
         getline(liness, path, separator);
         getline(liness, classlabel);
         if(!path.empty() && !classlabel.empty()) {
-            images.push_back(imread(path, 0));
-            labels.push_back(atoi(classlabel.c_str()));
+
+            string temp = path;
+            stringstream templiness(temp);
+            string tempname;
+            getline(templiness, tempname, '/');
+            getline(templiness, tempname, '/');
+            if(conn.find(tempname) == conn.end()){
+                conn[tempname] = atoi(classlabel.c_str());
+
+                images.push_back(imread(path, 0));
+                labels.push_back(atoi(classlabel.c_str()));
+            }
         }
     }
+
+
+
 }
 
-string g_listname_t[]= 
-{
-    "13073125",
-    "13073118",
-    "13073107",
-    "13073112",
-    "13073122",
-    /*"BigXhead",
-    "LaMaoutai",
-    "Eth4nZ",
-    "WildKatzeX",
-    "cartitsu",*/
-};
 
-const int numList = 5;
-int capLoops = 5000;
-int capTimes[numList];
 
 int main(int argc, const char *argv[]) {
     // Check for valid command line arguments, print usage
     // if no arguments were given.
-    if (argc != 2) {
+    if (argc < 2) {
 //        cout << "usage: " << argv[0] << " </path/to/haar_cascade> </path/to/csv.ext> </path/to/device id>" << endl;
 //        cout << "\t </path/to/haar_cascade> -- Path to the Haar Cascade for face detection." << endl;
         cout << "\t </path/to/csv.ext> -- Path to the CSV file with the face database." << endl;
 //        cout << "\t <device id> -- The webcam device id to grab frames from." << endl;
         exit(1);
     }
+    if(argc == 3)
+        capLoops = atoi(argv[2]);
     // Get the path to your CSV:
     string fn_haar_face = "/usr/share/opencv/haarcascades/haarcascade_frontalface_alt.xml";
     string fn_haar_eye = "/usr/share/opencv/haarcascades/haarcascade_eye.xml";
@@ -101,12 +105,13 @@ int main(int argc, const char *argv[]) {
         cerr << "Capture Device ID " << deviceId << "cannot be opened." << endl;
         return -1;
     }
-    for(int i = 0; i < numList; i++)
+    capTimes.resize(conn.size());
+    for(int i = 0; i < conn.size(); i++)
         capTimes[i] = 0;
     // Holds the current frame from the Video device:
     Mat frame;
     //cin >> capLoops;
-    for(int i = 0; i < capLoops; i++) {
+    for(int cl = 0; cl < capLoops; cl++) {
         cap >> frame;
         // Clone the current frame:
         Mat original = frame.clone();
@@ -161,12 +166,16 @@ int main(int argc, const char *argv[]) {
             string box_text;
             box_text = format( "" );
             // Get stringname
-            if ( prediction >= 0 && prediction < numList )
-            {
-                box_text.append( g_listname_t[prediction] );
-                capTimes[prediction]++;
-            }
-            else box_text.append( "Unknown" );
+            if(prediction < conn.size())
+                for(map<string, int>::iterator ii = conn.begin(); ii!= conn.end(); ii++){
+                    if(prediction == (*ii).second){
+                        cout << "[" << cl << "] " << (*ii).second << ": " << (*ii).first <<  endl;
+                        box_text.append((*ii).first);
+                        capTimes[prediction]++;
+                    }
+                }
+            else
+                box_text.append( "Unknown" );
             ostringstream strs;
             strs << confidence;
             string str = strs.str();
@@ -188,11 +197,12 @@ int main(int argc, const char *argv[]) {
         if(key == 27)
             break;
     }
-    for(int i = 0; i < numList; i++){
-        if(capTimes[i] > capLoops*4/7)
-            cout << g_listname_t[i] << "'s here!" << endl;
+
+    for(map<string, int>::iterator ii = conn.begin(); ii!= conn.end(); ii++){
+        if(capTimes[(*ii).second] > capLoops*4/7)
+            cout << (*ii).first << "'s here!" << endl;
         else
-            cout << g_listname_t[i] << "'s ABSENT!" << endl;
+            cout << (*ii).first << "'s ABSENT!" << endl;
     }
     return 0;
 }
