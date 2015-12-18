@@ -199,7 +199,7 @@ int main(int argc, const char *argv[]) {
     }
 
     for(map<string, int>::iterator ii = conn.begin(); ii!= conn.end(); ii++){
-        if(capTimes[(*ii).second] > capLoops*4/7)
+        if(capTimes[(*ii).second] > capLoops*1/2)
             cout << (*ii).first << "'s here!" << endl;
         else
             cout << (*ii).first << "'s ABSENT!" << endl;
