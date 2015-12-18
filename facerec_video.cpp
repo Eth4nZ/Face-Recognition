@@ -169,7 +169,7 @@ int main(int argc, const char *argv[]) {
             if(prediction < conn.size())
                 for(map<string, int>::iterator ii = conn.begin(); ii!= conn.end(); ii++){
                     if(prediction == (*ii).second){
-                        cout << "[" << cl << "] " << (*ii).second << ": " << (*ii).first <<  endl;
+                        //cout << "[" << cl << "] " << (*ii).second << ": " << (*ii).first <<  endl;
                         box_text.append((*ii).first);
                         capTimes[prediction]++;
                     }
