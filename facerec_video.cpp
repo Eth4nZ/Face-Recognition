@@ -85,8 +85,8 @@ int main(int argc, const char *argv[]) {
     int im_height = images[0].rows;
     // Create a FaceRecognizer and train it on the given images:
     //Ptr<FaceRecognizer> model = createFisherFaceRecognizer();
-    Ptr<FaceRecognizer> model = createEigenFaceRecognizer();
-    //Ptr<FaceRecognizer> model = createLBPHFaceRecognizer();
+    //Ptr<FaceRecognizer> model = createEigenFaceRecognizer();
+    Ptr<FaceRecognizer> model = createLBPHFaceRecognizer();
 
     model->train(images, labels);
     // That's it for learning the Face Recognition model. You now
