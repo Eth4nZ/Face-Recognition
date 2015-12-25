@@ -27,7 +27,8 @@ you need to give the approximately (x,y)-position of two eyes to crop every face
 
 ###Prepare .csv file
 to run our facerec_video, we need a .csv file to store paths of our database.
-if our images in hierarchie like this(/basepath/<subject>/<image.png>):
+if our images in hierarchie like this
+> /basepath/<subject>/<image.png>
 ├── 0  
 │   ├── 0.png_20_20_70_70.png  
 │   ├── 1.png_20_20_70_70.png  
