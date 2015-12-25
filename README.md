@@ -5,16 +5,18 @@ _This repository is our Digital Image Proccessing Course Exercise._
 We implemented a basic face recognition program based on the [sample of OpenCV](http://docs.opencv.org/2.4/modules/contrib/doc/facerec/facerec_tutorial.html#face-recognition-with-opencv).
 
 ##Requirements
-*OpenCV 2.4.9
-*Webcam
-*python2.7+
-*g++
+* OpenCV 2.4.9
+* jWebcam
+* python2.7+
+* g++
 
 ##Preparation
 ###Modify facerec_video.cpp
 you need to modify few lines in *facerec_video.cpp*.
+
 **line 60 & 61** modify the path to your haarcascades*.xml.
 The available Haar-Cascades for face detection are located in the data folder of your OpenCV installation.
+
 **line 64** the deviceID of your Webcam (0 for me).
 
 ###Prepare images
@@ -50,13 +52,11 @@ you can simply call create_csv.py with the path to the folder and redirect outpu
 </code></pre>
 
 ##Usage
-<pre><code>
-opencv facerec_video.cpp
+<pre><code>opencv facerec_video.cpp
 ./facerec_video yourcsv.csv
 </code></pre>
 
 if you want to take attendance in _50_ frames
-<pre><code>
-./facerec_video yourcsv.csv 50
+<pre><code>./facerec_video yourcsv.csv 50
 </code></pre>
 
