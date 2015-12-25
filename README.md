@@ -17,7 +17,7 @@ you need to modify few lines in *facerec_video.cpp*.
 **line 60 & 61** modify the path to your haarcascades*.xml.  
 the available Haar-Cascades for face detection are located in the data folder of your OpenCV installation.
 
-**line 64** the deviceID of your Webcam (0 for me).
+**line 64** modify the deviceID of your Webcam (0 for me).
 
 ###Prepare images
 using crop_face.py to crop every image.(in the same folder of your raw images).
